@@ -5,7 +5,7 @@ import (
 	"os/exec"
 	"runtime"
 	//"strconv"
-	//"time"
+	"time"
 )
 
 func main() {
@@ -16,9 +16,9 @@ func main() {
 func bruteForce() {
 	generatedSlice := generateCharSlice()
 
-	index := binarySearch(generatedSlice, 50)
+	index := binarySearch(generatedSlice, 2)
 	if index != -1 {
-		println("bruteforce success!")
+		//println("bruteforce success!")
 	}
 }
 
@@ -29,6 +29,17 @@ func binarySearch(sortedSlice []int, element int) int {
 	indexUpper := len(sortedSlice) - 1
 
 	for indexLower <= indexUpper {
+
+		time.Sleep(time.Second)
+		clearTerminal()
+		for i := range generateCharSlice() {
+			if i == inBetweenIndex {
+				print(string(generateCharSlice()[inBetweenIndex]))
+			} else {
+				print("_")
+			}
+		}
+
 		if sortedSlice[inBetweenIndex] > element { //go smaller
 			indexUpper = inBetweenIndex - 1
 		} else if sortedSlice[inBetweenIndex] < element { //go larger
