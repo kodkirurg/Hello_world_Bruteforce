@@ -5,22 +5,36 @@ import (
 	"runtime"
 	"os"
 	"os/exec"
-	"time"
+	//"strconv"
+	//"time"
 )
 func main(){
-	var s string = runtime.GOOS
-	fmt.Println(s)
+	//var s string = runtime.GOOS
 	clearTerminal()
-	for true {
-		fmt.Println(s)
-		time.Sleep(5 * time.Millisecond)
-		clearTerminal()
-		s =  s 
-	}
+	fmt.Printf("%d\n",int(generateCharArray()[0]))
 }
 
 func bruteForce(){
 
+}
+
+//const untyped, var typed
+
+//returns -1 if not found and index if found
+func binarySearch(sortedArray []int) int{
+	//var index int
+
+	return -1
+}
+
+func generateCharArray() []int {
+	const lowerCharValue,upperCharValue int = 32, 122
+	var sortedCharArray []int
+	sortedCharArray = make([]int, upperCharValue-lowerCharValue+1)
+	for x:= 0 ; x <= upperCharValue-lowerCharValue ; x++ {
+		sortedCharArray[x] = x+lowerCharValue
+	}
+	return sortedCharArray
 }
 
 func clearTerminal(){
