@@ -4,13 +4,13 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
-	//"strconv"
 	"time"
 )
 
 const helloWorld = "Hello World!"
+const timeBetweenFrameUpdate = 500 //Milliseconds
 
-var str string = ""
+var str string
 
 func main() {
 	clearTerminal()
@@ -29,7 +29,7 @@ func bruteForce() {
 }
 
 func printStatus(index int) {
-	time.Sleep(time.Second)
+	time.Sleep(time.Millisecond * timeBetweenFrameUpdate)
 	clearTerminal()
 	println(str + string(generateCharSlice()[index]))
 	for i := range generateCharSlice() {
