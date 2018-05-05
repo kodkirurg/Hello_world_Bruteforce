@@ -11,48 +11,61 @@ import (
 )
 
 const helloWorld = "Hello World!"
-const timeBetweenFrameUpdate = 5 //Milliseconds
+const timeBetweenFrameUpdate = 700 //Milliseconds
 const workers int = 4
 
-var logger = log.New(os.Stdout, "", 0)
-var str string
+var logger = log.New(os.Stdout, "", 0) // thread safe print
 var mutex = &sync.Mutex{}
+var bruteforceString = "              "
+var wg sync.WaitGroup
 
 func main() {
 	clearTerminal()
-	var wg sync.WaitGroup
+	helloWorldindex := 0
+	var channelArray [workers]chan int
+	for x := 0; x < workers; x++ { //spawn workers and assign first workload
+		channelArray[x] = make(chan int, 2)
+		go bruteForce(&wg, x+1, channelArray[x])
+		channelArray[x] <- helloWorldindex
+		helloWorldindex++
+	}
+	//assign equal work to workers via channels
+	for ; helloWorldindex < len(helloWorld); helloWorldindex += 4 {
+		for i := range channelArray {
+			channelArray[i] <- helloWorldindex + i
+		}
+	}
+	//shutdown workers
 	for x := 0; x < workers; x++ {
-		wg.Add(1)
-		go bruteForce(&wg, x+1)
-
+		channelArray[x] <- -1
 	}
 	wg.Wait() //wait for workers to join
-	time.Sleep(time.Second)
-	logger.Printf("\033[" + strconv.Itoa(workers+1) + ";0H")
-	logger.Printf("\n \n \n")
 }
 
-func bruteForce(wg *sync.WaitGroup, worker int) {
-	defer wg.Done() //when finished tell main thread
-
+func bruteForce(wg *sync.WaitGroup, worker int, channel chan int) {
+	wg.Add(1)
+	defer wg.Done() //when finished, notify
 	generatedSlice := generateCharSlice()
-	for _, v := range helloWorld {
-		index := binarySearch(generatedSlice, int(v), worker)
+	for {
+		helloWorldIndex := <-channel
+		if helloWorldIndex == -1 { //shutdown
+			return
+		}
+		index := binarySearch(generatedSlice, int(helloWorld[helloWorldIndex]), worker, helloWorldIndex)
 		if index == -1 {
 			panic("Error; char missing")
 		}
-		str = str + string(v)
 	}
 }
 
 //returns -1 if not found and index if found
-func binarySearch(sortedSlice []int, element int, workerLine int) int {
+func binarySearch(sortedSlice []int, element int, workerLine int, helloWorldIndex int) int {
 	indexLower := 0
 	inBetweenIndex := len(sortedSlice) / 2
 	indexUpper := len(sortedSlice) - 1
 
 	for indexLower <= indexUpper {
-		printWorker(inBetweenIndex, workerLine)
+		printWorker(inBetweenIndex, workerLine, helloWorldIndex)
 		if sortedSlice[inBetweenIndex] > element { //go smaller
 			indexUpper = inBetweenIndex - 1
 		} else if sortedSlice[inBetweenIndex] < element { //go larger
@@ -65,7 +78,7 @@ func binarySearch(sortedSlice []int, element int, workerLine int) int {
 	return -1
 }
 
-func printWorker(charIndex int, workerLine int) {
+func printWorker(charIndex int, workerLine int, helloWorldIndex int) {
 	time.Sleep(time.Millisecond * timeBetweenFrameUpdate)
 	mutex.Lock()
 	var s string
@@ -76,8 +89,11 @@ func printWorker(charIndex int, workerLine int) {
 			s = s + "_"
 		}
 	}
-	logger.Printf("\033[" + strconv.Itoa(workerLine) + ";0H") //move to correct line for printing worker progress
+	logger.Printf("\033[" + strconv.Itoa(workerLine+1) + ";0H") //move to correct line for printing worker progress
 	logger.Printf(s + "\n")
+	logger.Printf("\033[0;0f") //move to correct line for printing worker progress //move to hello world string and show latest bruteforce attempt char
+	bruteforceString = bruteforceString[:helloWorldIndex] + string(generateCharSlice()[charIndex]) + bruteforceString[helloWorldIndex+1:]
+	logger.Printf(bruteforceString)
 	mutex.Unlock()
 }
 
