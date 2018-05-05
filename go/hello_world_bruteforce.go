@@ -10,13 +10,13 @@ import (
 	"time"
 )
 
-const helloWorld = "Hello World!"
-const timeBetweenFrameUpdate = 700 //Milliseconds
+const message = "Hello World! How is it going? This is a long message"
+const timeBetweenFrameUpdate = 150 //Milliseconds
 const workers int = 4
 
 var logger = log.New(os.Stdout, "", 0) // thread safe print
 var mutex = &sync.Mutex{}
-var bruteforceString = "              "
+var bruteforceString = string(make([]byte, len(message)))
 var wg sync.WaitGroup
 
 func main() {
@@ -30,8 +30,11 @@ func main() {
 		helloWorldindex++
 	}
 	//assign equal work to workers via channels
-	for ; helloWorldindex < len(helloWorld); helloWorldindex += 4 {
+	for ; helloWorldindex < len(message); helloWorldindex += 4 {
 		for i := range channelArray {
+			if !(helloWorldindex+i < len(message)) {
+				break
+			}
 			channelArray[i] <- helloWorldindex + i
 		}
 	}
@@ -51,7 +54,7 @@ func bruteForce(wg *sync.WaitGroup, worker int, channel chan int) {
 		if helloWorldIndex == -1 { //shutdown
 			return
 		}
-		index := binarySearch(generatedSlice, int(helloWorld[helloWorldIndex]), worker, helloWorldIndex)
+		index := binarySearch(generatedSlice, int(message[helloWorldIndex]), worker, helloWorldIndex)
 		if index == -1 {
 			panic("Error; char missing")
 		}
